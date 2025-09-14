@@ -1,0 +1,105 @@
+<!-- payment.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment</title>
+<style>
+  :root{--accent:#fe2c55;--muted:#8a8b91}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#fff;min-height:100vh}
+  .modal{background:#fff;border-radius:12px;width:100%;height:100%;padding:30px;position:relative}
+  .close{position:absolute;top:14px;right:18px;font-size:22px;cursor:pointer}
+  h2{margin:0 0 20px;font-size:26px}
+  .row{display:flex;justify-content:space-between;margin:12px 0;font-size:16px}
+  .divider{height:1px;background:#eee;margin:16px 0}
+  .section-title{margin:8px 0 14px;font-weight:700;font-size:18px}
+  .pay-option{border:1px solid #ddd;border-radius:10px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;cursor:pointer}
+  .pay-left{display:flex;align-items:center;gap:10px}
+  .agree{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:#555;margin:10px 0}
+  .hint{font-size:12px;color:#777;margin:12px 0}
+  .foot{display:flex;justify-content:flex-end;gap:10px;align-items:center;margin-top:6px}
+  .btn-pay{background:#fe2c55;color:#fff;border:0;border-radius:10px;padding:14px 22px;font-size:16px;font-weight:700;cursor:pointer}
+  .spinner{width:26px;height:26px;border:3px solid #eee;border-top-color:#fe2c55;border-radius:50%;margin:8px 10px 0 0;animation:spin 1s linear infinite;display:none}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="modal" role="dialog" aria-modal="true">
+  <div class="close" onclick="parent.postMessage({type:'closePopup'},'*')" aria-label="Close">&times;</div>
+  <h2>Order Summary</h2>
+
+  <div class="row"><span>Account</span><span id="username"></span></div>
+  <div class="row"><span>Gifted by</span><span id="offeredBy">Prince Dubai</span></div>
+
+  <div class="divider"></div>
+
+  <div class="row"><span id="coinsLabel">0 Coins</span><span id="price">€ 0.00</span></div>
+  <div class="row" style="font-weight:700"><span>Total</span><span id="total">€ 0.00</span></div>
+
+  <div class="divider"></div>
+  <div class="section-title">Choose a payment method</div>
+
+  <div class="pay-option" onclick="selectPay(this)">
+    <div class="pay-left">
+      <input type="radio" name="pay" checked>
+      <span>PayPal</span>
+    </div>
+    <div>******r12 <img src="paypal.png" alt="PayPal" style="height:20px;vertical-align:middle;margin-left:6px"></div>
+  </div>
+
+  <div class="agree">
+    <input type="checkbox" id="agree" checked>
+    <label for="agree">By checking this box, I accept the <b>Coins Policy</b> and request that the coins be credited to my account immediately.</label>
+  </div>
+
+  <div class="hint">By continuing this purchase, you confirm you are located in <b>France</b>.</div>
+
+  <div class="foot">
+    <div class="spinner" id="spinner"></div>
+    <button class="btn-pay" id="payNow">Pay Now</button>
+  </div>
+</div>
+
+<script>
+  // Read from URL first (authoritative), else from localStorage
+  const params = new URLSearchParams(window.location.search);
+
+  const user  = params.get('u') ?? localStorage.getItem('username')      ?? 'yourname';
+  const coins = params.get('c') ?? localStorage.getItem('selectedCoins') ?? '0';
+  const price = params.get('p') ?? localStorage.getItem('selectedPrice') ?? '0';
+
+  // Keep localStorage in sync (optional, helpful for reloads)
+  localStorage.setItem('username', user);
+  localStorage.setItem('selectedCoins', coins);
+  localStorage.setItem('selectedPrice', price);
+
+  // Fill summary
+  document.getElementById('username').textContent   = user;                 // Account
+  document.getElementById('offeredBy').textContent  = 'Prince Dubai';       // Gifted by fixed
+  document.getElementById('coinsLabel').textContent = Number(coins).toLocaleString('en-US') + ' Coins';
+  document.getElementById('price').textContent      = '€ ' + Number(price).toFixed(2);
+  document.getElementById('total').textContent      = '€ ' + Number(price).toFixed(2);
+
+  // Select PayPal
+  function selectPay(el){ el.querySelector('input[type="radio"]').checked = true; }
+
+  // Simulated checkout → notify parent (index.html)
+  const spinner = document.getElementById('spinner');
+  document.getElementById('payNow').addEventListener('click', () => {
+    if(!document.getElementById('agree').checked){
+      alert('Please agree to continue.');
+      return;
+    }
+    if (spinner) spinner.style.display='inline-block';
+    setTimeout(() => {
+      if (spinner) spinner.style.display='none';
+      parent.postMessage({ type:'paymentSuccess', amount:'€ ' + Number(price).toFixed(2), coins: coins }, '*');
+    }, 800);
+  });
+</script>
+
+</body>
+</html>

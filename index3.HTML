@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Offer Coins</title>
+<style>
+  :root{--accent:#fe2c55;--text:#161823;--muted:#8a8b91;--card:#fff;--bg:#f8f8f8;--radius:12px;--shadow:0 2px 8px rgba(0,0,0,.06)}
+  *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+  .topbar{position:fixed;top:0;left:0;right:0;z-index:10;background:#fff;height:64px;display:flex;align-items:center;border-bottom:1px solid #eee;padding:0 20px;gap:16px}
+  .brand{display:flex;align-items:center;gap:10px;min-width:160px} .brand img{height:34px} .brand .name{font-weight:700;font-size:22px}
+  .container{max-width:1150px;margin:120px auto 80px;padding:0 20px}
+  h1{font-size:36px;margin:0 0 22px}
+  .verify-row{display:flex;gap:14px;align-items:center;margin-bottom:26px}
+  .verify-row input{flex:1;height:44px;border:1px solid #e6e6e6;border-radius:10px;padding:0 14px;font-size:16px;background:#fff}
+  .btn-accent{white-space:nowrap;height:44px;padding:0 18px;background:var(--accent);color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer}
+  .section-title{font-size:24px;font-weight:700;margin:28px 0 14px}
+  .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;display:flex;align-items:center;gap:14px;border:1px solid #f0f0f0;cursor:pointer;transition:transform .05s,border-color .2s}
+  .card:hover{transform:translateY(-1px);border-color:#e9e9e9} .card.selected{outline:3px solid rgba(254,44,85,.18);border-color:var(--accent)}
+  .coin-ic{width:36px;height:36px;flex:0 0 36px}
+  .coin-amount{font-weight:800;font-size:22px} .coin-price{color:var(--muted);margin-top:6px;font-size:14px}
+  .custom-line{color:var(--muted);font-size:13px;margin-top:4px}
+  .custom-inputs{margin-top:10px;display:flex;gap:8px}
+  .custom-inputs input{height:38px;width:120px;border:1px solid #e6e6e6;border-radius:8px;padding:0 10px}
+  .pay-row{margin-top:26px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .pay-row .label{font-weight:700;margin-right:6px} .pay-logos img{height:22px;margin-right:8px;vertical-align:middle}
+  .total{margin-top:10px;font-size:18px} .total b{font-size:20px}
+  .cta{margin-top:14px} .btn-pay{height:48px;padding:0 22px;background:var(--accent);border:0;color:#fff;border-radius:10px;font-weight:800;cursor:pointer}
+  /* Payment popup */
+  #paymentOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;justify-content:center;align-items:center}
+  #paymentWrap{position:relative;width:820px;max-width:95%;height:640px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+  #paymentClose{position:absolute;top:10px;right:14px;z-index:2;background:none;border:0;font-size:26px;cursor:pointer;color:#333}
+  #paymentFrame{border:none;width:100%;height:100%}
+  /* Success full-screen (like your screenshot) */
+  .paydone-overlay{display:none;position:fixed;inset:0;z-index:12000;background:#fff}
+  .paydone-wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;height:100%}
+  .paydone-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 24px 12px}
+  .paydone-icon{width:64px;height:64px;border-radius:50%;background:#b8f3c2;border:3px solid #2ecc71;display:grid;place-items:center;margin-top:6px}
+  .paydone-icon img{width:34px;height:34px;display:block}
+  .paydone-title{font-size:26px;font-weight:700;margin:18px 0 8px}
+  .paydone-sub{font-size:16px;color:#444;text-align:center;max-width:560px;line-height:1.45;margin-bottom:22px}
+  .paydone-sub strong{font-weight:700}
+  .paydone-h2{font-size:22px;font-weight:700;margin:8px 0 14px}
+  .paydone-method{height:26px}
+  .paydone-footer{padding:0}
+  .paydone-back{width:100%;border:0;background:#fe2c55;color:#fff;font-size:22px;font-weight:700;padding:16px 10px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><img src="logo.png" alt="TikTok"><div class="name">TikTok</div></div>
+</div>
+
+<div class="container">
+  <h1>TikTok Coin Recharge</h1>
+
+  <div class="verify-row">
+    <input id="pseudo" type="text" placeholder="Enter your username">
+    <button class="btn-accent" id="btnVerify">Verify</button>
+  </div>
+
+  <div class="section-title">Recharge</div>
+
+  <div class="grid" id="coinGrid">
+    <div class="card" data-coins="70" data-price="0.85"><img src="cointiktok.png" class="coin-ic"><div><div class="coin-amount">70</div><div class="coin-price">€ 0.85</div></div></div>
+    <div class="card" data-coins="350" data-price="4.15"><img src="cointiktok.png" class="coin-ic"><div><div class="coin-amount">350</div><div class="coin-price">€ 4.15</div></div></div>
+    <div class="card" data-coins="700" data-price="8.29"><img src="cointiktok.png" class="coin-ic"><div><div class="coin-amount">700</div><div class="coin-price">€ 8.29</div></div></div>
+    <div class="card" data-coins="1400" data-price="16.49"><img src="cointiktok.png" class="coin-ic"><div><div class="coin-amount">1,400</div><div class="coin-price">€ 16.49</div></div></div>
+    <div class="card" data-coins="3500" data-price="41.25"><img src="cointiktok.png" class="coin-ic"><div><div class="coin-amount">3,500</div><div class="coin-price">€ 41.25</div></div></div>
+    <div class="card" data-coins="7000" data-price="82.09"><img src="cointiktok.png" class="coin-ic"><div><div class="coin-amount">7,000</div><div class="coin-price">€ 82.09</div></div></div>
+    <div class="card" data-coins="17500" data-price="205.19"><img src="cointiktok.png" class="coin-ic"><div><div class="coin-amount">17,500</div><div class="coin-price">€ 205.19</div></div></div>
+    <div class="card" id="customCard" data-custom="true"><img src="cointiktok.png" class="coin-ic"><div style="width:100%"><div class="coin-amount">Custom</div><div class="custom-line">High amounts supported</div><div class="custom-inputs"><input id="customCoins" type="number" min="1" placeholder="Coins"><input id="customPrice" type="number" min="0" step="0.01" placeholder="€"></div></div></div>
+  </div>
+
+  <div class="pay-row">
+    <span class="label">Payment method</span>
+    <span class="pay-logos">
+      <img src="visa.png" alt="Visa"><img src="mc.png" alt="MasterCard"><img src="maestro.png" alt="Maestro"><img src="american.png" alt="American Express"><img src="paypal.png" alt="PayPal">
+    </span>
+  </div>
+
+  <div class="total">Total <b id="total">€ 0.00</b></div>
+  <div class="cta"><button class="btn-pay" id="btnPay">Recharge</button></div>
+</div>
+
+<!-- Payment Popup -->
+<div id="paymentOverlay">
+  <div id="paymentWrap">
+    <button id="paymentClose" aria-label="Close">&times;</button>
+    <iframe id="paymentFrame" src=""></iframe>
+  </div>
+</div>
+
+<!-- SUCCESS OVERLAY (full screen) -->
+<div id="paydone" class="paydone-overlay" role="dialog" aria-modal="true">
+  <div class="paydone-wrap">
+    <div class="paydone-body">
+      <div class="paydone-icon" aria-hidden="true">
+        <img src="tik.png" alt="Success">
+      </div>
+      <div class="paydone-title">Payment completed</div>
+      <div id="paydoneText" class="paydone-sub">
+        You recharged coins. The coins can be used to send virtual gifts.
+      </div>
+
+      <div class="paydone-h2">Payment method</div>
+      <img src="paypal.png" alt="PayPal" class="paydone-method">
+    </div>
+
+    <div class="paydone-footer">
+      <button class="paydone-back" onclick="closeSuccess()">Go back</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ----- Elements -----
+  const grid        = document.getElementById('coinGrid');
+  const totalEl     = document.getElementById('total');
+  const customCoins = document.getElementById('customCoins');
+  const customPrice = document.getElementById('customPrice');
+  const customCard  = document.getElementById('customCard');
+  const overlay     = document.getElementById('paymentOverlay');
+  const iframe      = document.getElementById('paymentFrame');
+
+  // (Optional) Prefill username if previously saved
+  (function prefillUsername(){
+    const input = document.getElementById('pseudo');
+    const saved = localStorage.getItem('username');
+    if (input && saved) input.value = saved;
+  })();
+
+  // ----- Helpers -----
+  function clearSelected(){
+    [...grid.querySelectorAll('.card')].forEach(c => c.classList.remove('selected'));
+  }
+  function setTotal(v){
+    totalEl.textContent = '€ ' + Number(v || 0).toFixed(2);
+  }
+
+  // ----- Card selection -----
+  grid.addEventListener('click', (e) => {
+    const card = e.target.closest('.card');
+    if(!card) return;
+    clearSelected();
+    card.classList.add('selected');
+    const price = card.dataset.custom ? parseFloat(customPrice.value || '0') : parseFloat(card.dataset.price || '0');
+    setTotal(price);
+  });
+
+  // ----- Custom inputs keep custom card selected -----
+  [customCoins, customPrice].forEach(inp => inp.addEventListener('input', () => {
+    clearSelected();
+    customCard.classList.add('selected');
+    setTotal(parseFloat(customPrice.value || '0'));
+  }));
+
+  // ----- Verify button (optional UX) saves username too -----
+  document.getElementById('btnVerify').addEventListener('click', () => {
+    const v = document.getElementById('pseudo').value.trim() || 'yourname';
+    localStorage.setItem('username', v);
+    alert('Username set: ' + v);
+  });
+
+  // ----- Open payment popup, save coins/price/username -----
+document.getElementById('btnPay').addEventListener('click', () => {
+  const selectedCard = grid.querySelector('.card.selected');
+  if(!selectedCard){ alert('Please select a coin pack.'); return; }
+
+  const userInput = document.getElementById('pseudo');
+  const user = (userInput ? userInput.value.trim() : '');
+  if(!user){ alert('Please enter your username.'); return; }
+
+  const coins = selectedCard.dataset.custom ? (customCoins.value || '0') : selectedCard.dataset.coins;
+  const price = selectedCard.dataset.custom ? (customPrice.value || '0') : selectedCard.dataset.price;
+
+  if(parseFloat(price) <= 0){ alert('Please enter a valid amount.'); return; }
+
+  // Save as before (fallback)
+  localStorage.setItem('selectedCoins', coins);
+  localStorage.setItem('selectedPrice', price);
+  localStorage.setItem('username', user);
+
+  // ✅ Also pass via URL (authoritative)
+  const qs = new URLSearchParams({ u: user, c: coins, p: price }).toString();
+  iframe.src = 'payment.html?' + qs;
+
+  overlay.style.display = 'flex';
+});
+  // ----- Close payment popup -----
+  document.getElementById('paymentClose').addEventListener('click', () => {
+    overlay.style.display = 'none';
+    iframe.src = '';
+  });
+
+  // ----- Success overlay helpers (uses #paydone / #paydoneText) -----
+  function showSuccess(amount, coins){
+    const txt  = document.getElementById('paydoneText');
+    const user = localStorage.getItem('username') || 'yourname';
+    if(amount && coins){
+      const niceCoins = Number(coins).toLocaleString('en-US');
+      txt.innerHTML = `@${user} recharged <strong>${niceCoins}</strong> coins for <strong>${amount}</strong>. The coins can be used to send virtual gifts.`;
+    } else {
+      txt.textContent = `@${user} recharged coins. The coins can be used to send virtual gifts.`;
+    }
+    document.getElementById('paydone').style.display = 'block';
+  }
+  function closeSuccess(){
+    document.getElementById('paydone').style.display = 'none';
+  }
+  // make available for the "Go back" button inline onclick
+  window.closeSuccess = closeSuccess;
+
+  // ----- Listen for messages from payment.html -----
+  window.addEventListener('message', (e) => {
+    if(!e.data || !e.data.type) return;
+
+    if(e.data.type === 'paymentSuccess'){
+      overlay.style.display = 'none';
+      iframe.src = '';
+      showSuccess(e.data.amount, e.data.coins);
+      // Optionally reset selection/total:
+      // clearSelected(); setTotal(0);
+    }
+
+    if(e.data.type === 'closePopup'){
+      overlay.style.display = 'none';
+      iframe.src = '';
+    }
+  });
+</script>
